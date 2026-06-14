@@ -196,31 +196,13 @@ function SectionHead({children,mt}) {
 
 function Slider({label,value,min,max,step,fmt,onChange,hint,footnote}) {
   const pct=((value-min)/(max-min))*100;
-  const handleNumInput = (e) => {
-    const raw = e.target.value;
-    if (raw === '' || raw === '-') return;
-    const n = Number(raw);
-    if (!isNaN(n)) onChange(Math.min(max, Math.max(min, n)));
-  };
   return (
     <div style={{marginBottom:18}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:5}}>
         <label style={{fontSize:13,color:C.textMid,fontWeight:500}}>
           {label}{footnote&&<sup style={{color:C.primary,marginLeft:2}}>{footnote}</sup>}
         </label>
-        <div style={{display:'flex',alignItems:'center',gap:6}}>
-          <input
-            type="number" min={min} max={max} step={step} value={value}
-            onChange={handleNumInput}
-            style={{
-              width:68, padding:'2px 5px', fontSize:12, textAlign:'right',
-              border:`1px solid ${C.border}`, borderRadius:5,
-              color:C.primary, fontFamily:'inherit', fontWeight:700,
-              background:'#F8FAFF', lineHeight:1.4,
-            }}
-          />
-          <span style={{fontSize:13,fontWeight:700,color:C.text,minWidth:56}}>{fmt(value)}</span>
-        </div>
+        <span style={{fontSize:14,fontWeight:700,color:C.text}}>{fmt(value)}</span>
       </div>
       <div style={{position:'relative',height:20}}>
         <div style={{position:'absolute',top:7,left:0,height:6,width:`${pct}%`,
