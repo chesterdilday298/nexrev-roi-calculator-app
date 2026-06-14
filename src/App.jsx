@@ -359,7 +359,7 @@ function PainPointScreen({onProceed}) {
 }
 
 // ── Calculator Screen ─────────────────────────────────────────────────────────
-function CalculatorScreen({ pains, vertIdx: initVertIdx, onBack }) {
+function CalculatorScreen({ pains, vertIdx: initVertIdx, onBack, onNext }) {
   const [vertIdx,   setVertIdx]   = useState(initVertIdx);
   const vert = VERTICALS[vertIdx];
 
@@ -1101,6 +1101,25 @@ function CalculatorScreen({ pains, vertIdx: initVertIdx, onBack }) {
                       Download PDF Report
                     </button>
                   </div>
+                  {onNext && (
+                    <div style={{ marginTop:20, paddingTop:20, borderTop:`1px solid ${C.border}` }}>
+                      <button onClick={onNext} style={{
+                        width:'100%', background:`linear-gradient(135deg,${C.nav} 0%,#243B6E 100%)`,
+                        border:'none', borderRadius:10, padding:'16px 20px',
+                        color:'#fff', fontSize:14, fontWeight:700,
+                        cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+                        boxShadow:'0 4px 14px rgba(27,45,80,0.30)',
+                      }}>
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                          <path d="M9 2a7 7 0 1 1 0 14A7 7 0 0 1 9 2zm0 3v4l3 2" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        What does building a hunting team actually cost?
+                      </button>
+                      <div style={{ fontSize:11, color:C.muted, textAlign:'center', marginTop:8 }}>
+                        See the NexRev Sales Team ROI Calculator
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -1115,6 +1134,293 @@ function CalculatorScreen({ pains, vertIdx: initVertIdx, onBack }) {
           <sup>**</sup> Demand response estimates based on FERC annual assessments and regional ISO/RTO program data (PJM, MISO, CAISO, ERCOT). Revenue varies significantly by utility territory, facility size, and program type. Not available in all markets.<br/>
           <sup>***</sup> Utility incentive estimates from DSIRE (dsireusa.org) and state public utility commission program databases. Programs vary by state, utility, and annual budget availability.<br/>
           Capital deferral per ASHRAE Standard 180 (Standard Practice for Inspection and Maintenance of Commercial Building HVAC Systems) and BOMA maintenance interval data. Properly maintained commercial RTUs regularly achieve 3 to 5 years beyond the standard 15-year useful life. All projections are estimates based on inputs above. Actual results depend on facility conditions and operational patterns.
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ── Hiring ROI Screen ─────────────────────────────────────────────────────────
+function HiringROIScreen({ onBack }) {
+  const [quota,      setQuota]      = useState(1500000);
+  const [ote,        setOte]        = useState(180000);
+  const [monthsOpen, setMonthsOpen] = useState(6);
+  const [pilotsY1,   setPilotsY1]   = useState(3);
+  const [pilotsY2,   setPilotsY2]   = useState(5);
+  const [rolloutSites, setRolloutSites] = useState(150);
+  const [ctrlPerSite,  setCtrlPerSite]  = useState(3);
+
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, []);
+
+  // Derived calculations
+  const ctrlPerDeal    = rolloutSites * ctrlPerSite;
+  const subRate        = getSubRate(ctrlPerDeal);
+  const annARRperDeal  = ctrlPerDeal * subRate * 12 + 500;
+  const hwPerDeal      = ctrlPerDeal * 550; // hardware revenue at ~$550/unit avg
+
+  // Revenue model: pilot-to-rollout at 80% conversion
+  const conv = 0.80;
+  const y1Rev  = pilotsY1 * conv * (hwPerDeal + annARRperDeal * 0.5); // partial yr sub
+  const y2Rev  = pilotsY1 * conv * annARRperDeal
+               + pilotsY2 * conv * (hwPerDeal + annARRperDeal * 0.5);
+  const y3Rev  = (pilotsY1 + pilotsY2) * conv * annARRperDeal
+               + Math.round(pilotsY2 * 0.6) * conv * (hwPerDeal + annARRperDeal * 0.5);
+  const total3  = y1Rev + y2Rev + y3Rev;
+
+  // Cost of hire
+  const cost3   = ote * 0.7 + ote + ote; // ramp yr + 2 full
+  const roi3x   = cost3 > 0 ? (total3 - cost3) / cost3 : 0;
+
+  // Gap (what empty seat costs monthly)
+  const dealsPerYr   = pilotsY1;
+  const monthlyGap   = dealsPerYr > 0 ? (dealsPerYr * (hwPerDeal + annARRperDeal) / 12) : 0;
+  const alreadyLost  = monthlyGap * monthsOpen;
+
+  // Payback: months until revenue exceeds year-1 cost
+  const y1Cost      = ote * 0.7;
+  const monthlyY1R  = y1Rev / 12;
+  const paybackMo   = monthlyY1R > 0 ? Math.ceil(y1Cost / monthlyY1R) : 99;
+
+  const fmtX = (n) => `${n.toFixed(1)}x`;
+
+  const PAINS = [
+    'Current team manages installed accounts. Pipeline is not growing.',
+    'You have annual revenue targets with no hunters to hit them.',
+    'Every month the seat stays open, pipeline that should exist does not.',
+    'Pilot opportunities are stalling for lack of field coverage.',
+    'The cost of the right hire is real. The cost of the empty seat is larger.',
+  ];
+
+  return (
+    <div style={{ minHeight:'100vh', background:C.pageBg, fontFamily:"'Inter',sans-serif" }}>
+
+      <nav style={{ background:C.nav, padding:'0 32px', height:60,
+        display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+            <path d="M14 4C8.477 4 4 8.477 4 14s4.477 10 10 10 10-4.477 10-10"
+              stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round"/>
+            <path d="M24 4l-2 6M24 4l-6 2"
+              stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ fontSize:20, fontWeight:800, color:'#FFFFFF', letterSpacing:'-0.4px' }}>
+            Nex<span style={{ color:'#60A5FA' }}>Rev</span>
+          </span>
+        </div>
+        <button onClick={onBack} style={{
+          background:'transparent', border:'1px solid rgba(255,255,255,0.2)',
+          borderRadius:8, padding:'7px 16px', color:'#94A3B8',
+          fontSize:13, cursor:'pointer', fontFamily:'inherit',
+        }}>
+          Back to Customer ROI
+        </button>
+      </nav>
+
+      <div style={{ background:C.nav, padding:'40px 32px 52px', textAlign:'center' }}>
+        <div style={{ display:'inline-block', background:'rgba(220,38,38,0.15)',
+          border:'1px solid rgba(220,38,38,0.35)', borderRadius:100,
+          padding:'5px 16px', fontSize:12, color:'#FCA5A5', fontWeight:600, marginBottom:18 }}>
+          NexRev Sales Team ROI Calculator
+        </div>
+        <h1 style={{ fontSize:28, fontWeight:800, color:'#FFFFFF',
+          lineHeight:1.25, maxWidth:680, margin:'0 auto 14px' }}>
+          What does the empty seat actually cost you?
+        </h1>
+        <p style={{ fontSize:15, color:'#94A3B8', maxWidth:560, margin:'0 auto', lineHeight:1.6 }}>
+          The toughest question in building a sales team is not whether to hire.
+          It is what not hiring is costing you right now. These are the numbers.
+        </p>
+      </div>
+
+      <div style={{ background:'#EFF6FF', borderBottom:`1px solid ${C.primaryLt}`, padding:'14px 24px' }}>
+        <div style={{ maxWidth:1320, margin:'0 auto', display:'flex', alignItems:'center', gap:14 }}>
+          <div style={{ fontSize:28, color:C.primary, fontFamily:'Georgia,serif', flexShrink:0 }}>&ldquo;</div>
+          <div style={{ fontSize:14, color:C.primary, fontWeight:600, fontStyle:'italic' }}>
+            You don&apos;t need more account managers. You need hunters. People who will get on a plane
+            and be in front of a customer before anyone else gets there.
+          </div>
+          <div style={{ fontSize:12, color:C.muted, whiteSpace:'nowrap' }}>
+            &mdash; Common theme in enterprise sales leadership
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth:1320, margin:'0 auto', padding:'32px 24px' }}>
+
+        <div style={{ ...cardStyle, padding:'20px 24px', marginBottom:24, borderLeft:`4px solid ${C.red}` }}>
+          <div style={{ fontSize:12, fontWeight:700, color:C.red, textTransform:'uppercase',
+            letterSpacing:'0.08em', marginBottom:12 }}>
+            What is true at NexRev right now
+          </div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
+            {PAINS.map((p,i) => (
+              <div key={i} style={{
+                display:'flex', alignItems:'flex-start', gap:8, width:'100%',
+                padding:'8px 0', borderBottom:i < PAINS.length-1 ? `1px solid ${C.divider}` : 'none',
+              }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink:0, marginTop:2 }}>
+                  <circle cx="8" cy="8" r="7" fill="#FEE2E2"/>
+                  <path d="M8 5v4M8 11v.5" stroke={C.red} strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                <span style={{ fontSize:13, color:C.textMid, lineHeight:1.5 }}>{p}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display:'flex', gap:24, alignItems:'flex-start', flexWrap:'wrap' }}>
+
+          <div style={{ flex:'0 0 340px', minWidth:280 }}>
+            <div style={{ ...cardStyle, padding:'24px' }}>
+              <SectionHead>Portfolio assumptions</SectionHead>
+
+              <Slider label="Average rollout size (sites)" value={rolloutSites}
+                min={25} max={500} step={25} fmt={v => fmtN(v) + ' sites'}
+                onChange={setRolloutSites} />
+              <Slider label="Controllers per site" value={ctrlPerSite}
+                min={1} max={8} step={1} fmt={v => v + ' units'}
+                onChange={setCtrlPerSite} />
+              <div style={{ background:C.divider, borderRadius:8, padding:'10px 14px', marginBottom:18, fontSize:13, color:C.muted }}>
+                Subscription tier: <strong style={{ color:C.text }}>${subRate}/unit/mo</strong>
+                {'  '}({fmtN(ctrlPerDeal)} controllers per rollout)
+              </div>
+
+              <SectionHead mt={24}>Pipeline assumptions</SectionHead>
+              <Slider label="Pilot-to-rollout deals in year 1" value={pilotsY1}
+                min={1} max={8} step={1} fmt={v => v + ' deals'}
+                onChange={setPilotsY1} hint="First 90 days target: 2 pilots signed" />
+              <Slider label="New deals in year 2" value={pilotsY2}
+                min={2} max={12} step={1} fmt={v => v + ' deals'}
+                onChange={setPilotsY2} />
+
+              <SectionHead mt={24}>Investment inputs</SectionHead>
+              <Slider label="Enterprise AE total annual cost (OTE + benefits)" value={ote}
+                min={120000} max={320000} step={10000} fmt={fmtUSD}
+                onChange={setOte} />
+              <Slider label="Months the hunter seat has been open" value={monthsOpen}
+                min={1} max={24} step={1} fmt={v => v + (v===1?' month':' months')}
+                onChange={setMonthsOpen} />
+            </div>
+          </div>
+
+          <div style={{ flex:1, minWidth:300 }}>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:20 }}>
+              <div style={{ ...cardStyle, padding:'16px', border:`1px solid ${C.red}`, gridColumn:'1 / -1' }}>
+                <div style={{ fontSize:10, fontWeight:700, color:C.red, textTransform:'uppercase',
+                  letterSpacing:'0.07em', marginBottom:6 }}>Revenue opportunity missed while seat is open</div>
+                <div style={{ fontSize:30, fontWeight:800, color:C.red }}>{fmtUSD(alreadyLost)}</div>
+                <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>
+                  {fmtUSD(monthlyGap)}/mo &times; {monthsOpen} months without coverage
+                </div>
+              </div>
+              <div style={{ ...cardStyle, padding:'16px', border:`1px solid ${C.amber}` }}>
+                <div style={{ fontSize:10, fontWeight:700, color:C.amber, textTransform:'uppercase',
+                  letterSpacing:'0.07em', marginBottom:6 }}>Cost of waiting 30 more days</div>
+                <div style={{ fontSize:22, fontWeight:800, color:C.amber }}>{fmtUSD(monthlyGap)}</div>
+                <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>in pipeline opportunity</div>
+              </div>
+              <div style={{ ...cardStyle, padding:'16px', border:`1px solid ${C.amber}` }}>
+                <div style={{ fontSize:10, fontWeight:700, color:C.amber, textTransform:'uppercase',
+                  letterSpacing:'0.07em', marginBottom:6 }}>Cost of waiting 90 more days</div>
+                <div style={{ fontSize:22, fontWeight:800, color:C.amber }}>{fmtUSD(monthlyGap*3)}</div>
+                <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>in pipeline opportunity</div>
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle, padding:'20px 24px', marginBottom:20 }}>
+              <SectionHead>Revenue from the right hire</SectionHead>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:16 }}>
+                <div style={{ background:C.greenLt, borderRadius:10, padding:'14px', textAlign:'center' }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.green, textTransform:'uppercase',
+                    letterSpacing:'0.07em', marginBottom:6 }}>Year 1</div>
+                  <div style={{ fontSize:20, fontWeight:800, color:C.green }}>{fmtUSD(y1Rev)}</div>
+                  <div style={{ fontSize:11, color:C.muted, marginTop:3 }}>{pilotsY1} rollouts (ramp yr)</div>
+                </div>
+                <div style={{ background:C.greenLt, borderRadius:10, padding:'14px', textAlign:'center' }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.green, textTransform:'uppercase',
+                    letterSpacing:'0.07em', marginBottom:6 }}>Year 2</div>
+                  <div style={{ fontSize:20, fontWeight:800, color:C.green }}>{fmtUSD(y2Rev)}</div>
+                  <div style={{ fontSize:11, color:C.muted, marginTop:3 }}>{pilotsY1 + pilotsY2} cumulative deals</div>
+                </div>
+                <div style={{ background:C.greenLt, borderRadius:10, padding:'14px', textAlign:'center' }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.green, textTransform:'uppercase',
+                    letterSpacing:'0.07em', marginBottom:6 }}>Year 3</div>
+                  <div style={{ fontSize:20, fontWeight:800, color:C.green }}>{fmtUSD(y3Rev)}</div>
+                  <div style={{ fontSize:11, color:C.muted, marginTop:3 }}>compounding book</div>
+                </div>
+              </div>
+              <div style={{ display:'flex', gap:12 }}>
+                <div style={{ flex:1, background:C.cardAlt, borderRadius:10, padding:'14px', textAlign:'center',
+                  border:`1px solid ${C.primaryLt}` }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.primary, textTransform:'uppercase',
+                    letterSpacing:'0.07em', marginBottom:4 }}>3-year total revenue</div>
+                  <div style={{ fontSize:26, fontWeight:800, color:C.primary }}>{fmtUSD(total3)}</div>
+                </div>
+                <div style={{ flex:1, background:C.cardAlt, borderRadius:10, padding:'14px', textAlign:'center',
+                  border:`1px solid ${C.primaryLt}` }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.primary, textTransform:'uppercase',
+                    letterSpacing:'0.07em', marginBottom:4 }}>3-year total cost</div>
+                  <div style={{ fontSize:26, fontWeight:800, color:C.textMid }}>{fmtUSD(cost3)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle, padding:'20px 24px', marginBottom:20 }}>
+              <SectionHead>The financial case</SectionHead>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                <div style={{ background:C.greenLt, borderRadius:10, padding:'16px', border:`1px solid ${C.green}` }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.green, textTransform:'uppercase',
+                    letterSpacing:'0.07em', marginBottom:6 }}>3-year ROI</div>
+                  <div style={{ fontSize:32, fontWeight:800, color:C.green }}>{fmtX(roi3x)}</div>
+                  <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>
+                    return on total cost of hire
+                  </div>
+                </div>
+                <div style={{ background:C.cardAlt, borderRadius:10, padding:'16px', border:`1px solid ${C.primaryLt}` }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.primary, textTransform:'uppercase',
+                    letterSpacing:'0.07em', marginBottom:6 }}>Payback period</div>
+                  <div style={{ fontSize:32, fontWeight:800, color:C.primary }}>
+                    {paybackMo < 99 ? paybackMo + ' mo' : 'N/A'}
+                  </div>
+                  <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>
+                    from first revenue to full cost recovery
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle, padding:'20px 24px', borderLeft:`4px solid ${C.primary}` }}>
+              <div style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:12 }}>
+                How this model works
+              </div>
+              <div style={{ fontSize:13, color:C.muted, lineHeight:1.7 }}>
+                Revenue includes hardware (one-time) plus annual subscription on each
+                rollout account. Pilot-to-rollout conversion held at 80%, consistent
+                with NexRev&apos;s install data. Year 1 accounts for a 6-month ramp before
+                first deals close. Year 2 reflects a full book plus new deals from
+                pipeline built in months 4 through 12. Year 3 compounds both.
+                Total hire cost uses 0.7x OTE for the ramp year, then 1.0x for
+                years 2 and 3.
+              </div>
+              <div style={{ fontSize:13, color:C.text, marginTop:16, fontWeight:600, lineHeight:1.7 }}>
+                Based on these inputs, every 30 days without a hunter
+                costs {fmtUSD(monthlyGap)} in pipeline.
+                The hire pays for itself in approximately {paybackMo < 99 ? paybackMo : '?'} months.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <footer style={{ borderTop:`1px solid ${C.border}`, padding:'20px 24px', background:C.card, marginTop:32 }}>
+        <div style={{ maxWidth:1320, margin:'0 auto', fontSize:11, color:C.muted, lineHeight:1.8 }}>
+          <strong style={{ color:C.text }}>NexRev</strong> Sales Team ROI Calculator &nbsp;|&nbsp; {new Date().getFullYear()}
+          <br/>
+          Revenue projections are illustrative estimates based on user inputs and NexRev&apos;s 80% pilot-to-rollout conversion benchmark.
+          Hardware revenue uses an average controller price of $550. Subscription pricing reflects NexRev&apos;s published tier structure.
+          Actual results will vary based on market conditions, account characteristics, and individual performance.
         </div>
       </footer>
     </div>
@@ -1136,11 +1442,15 @@ export default function App() {
       />
     );
   }
+  if (step === 2) {
+    return <HiringROIScreen onBack={() => setStep(1)} />;
+  }
   return (
     <CalculatorScreen
       pains={state.pains}
       vertIdx={state.vertIdx}
       onBack={() => setStep(0)}
+      onNext={() => setStep(2)}
     />
   );
 }
