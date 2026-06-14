@@ -16,7 +16,19 @@ const VERTICALS = [
   {
     id:'cstore', label:'C-Store / Fuel', desc:'Convenience stores and fuel retailers',
     context:'HVAC accounts for 35 to 42 percent of total utility spend at most convenience locations. The BX controller replacement play is the primary entry point, and the portfolio density makes economics compelling at the CFO level.',
-    d:{ sites:75, utility:18000, hvac:38, savings:12, ctrl:3, maint:6000, maintPct:12, trucks:6, truckElim:30, truckCost:450, drPct:35, drPerSite:900, utilPct:8, rtuPerSite:2, rtuCost:14000, rtuLife:15, rtuDeferYrs:3 },
+    d:{ sites:75, utility:18000, hvac:38, savings:12, ctrl:3, maint:6000, maintPct:12, trucks:6, truckElim:30, truckCost:750, drPct:35, drPerSite:900, utilPct:8, rtuPerSite:2, rtuCost:14000, rtuLife:15, rtuDeferYrs:3 },
+  },
+,
+  {
+    id:'retail', label:'General Retail', desc:'Specialty, sporting goods, and multi-format retailers',
+    context:'Large-format general retailers average 10 or more RTUs per site with high truck roll frequency and significant deferred capital opportunity. Freedom delivers enterprise-wide visibility and HVAC control across diverse store formats without touching the IT network.',
+    d:{ sites:100, utility:60000, hvac:42, savings:8, ctrl:10, maint:8000, maintPct:10, trucks:10, truckElim:25, truckCost:700, drPct:0, drPerSite:0, utilPct:5, rtuPerSite:10, rtuCost:18000, rtuLife:15, rtuDeferYrs:3 },
+  }
+,
+  {
+    id:'qsr', label:'QSR / Casual Dining', desc:'Quick service and casual dining restaurant chains',
+    context:'QSR and casual dining chains run high-turnover kitchen environments with HVAC loads that swing dramatically by daypart. Freedom provides automated setback, remote fault detection, and NexiAI-driven energy reporting across the portfolio. Key NexRev wins include Whataburger rollout.',
+    d:{ sites:80, utility:32000, hvac:40, savings:13, ctrl:5, maint:7000, maintPct:12, trucks:8, truckElim:30, truckCost:600, drPct:30, drPerSite:900, utilPct:7, rtuPerSite:4, rtuCost:14000, rtuLife:15, rtuDeferYrs:3 },
   },
   {
     id:'pharmacy', label:'Pharmacy', desc:'Drug retail and pharmacy chains',
@@ -605,7 +617,7 @@ function CalculatorScreen({ pains, vertIdx: initVertIdx, onBack, onNext }) {
               </div>
 
               <SectionHead>Portfolio size</SectionHead>
-              <Slider label="Number of sites" value={sites} min={5} max={500} step={5}
+              <Slider label="Number of sites" value={sites} min={5} max={5000} step={25}
                 fmt={v => `${fmtN(v)} sites`} onChange={setSites}
                 hint={`${fmtN(r.totalCtrl)} total Freedom controllers — ${subTierLabel(r.totalCtrl)}`} />
               <Slider label="Avg annual utility cost per site" value={utility} min={5000} max={120000} step={1000}
@@ -1142,7 +1154,7 @@ function CalculatorScreen({ pains, vertIdx: initVertIdx, onBack, onNext }) {
 
 // ── Hiring ROI Screen ─────────────────────────────────────────────────────────
 function HiringROIScreen({ onBack }) {
-  const [ote,          setOte]         = useState(250000);
+  const [ote,          setOte]         = useState(280000);
   const [monthsOpen,   setMonthsOpen]  = useState(6);
   const [pilotsY1,     setPilotsY1]    = useState(3);
   const [pilotsY2,     setPilotsY2]    = useState(5);
@@ -1196,7 +1208,7 @@ function HiringROIScreen({ onBack }) {
     '$40M in 2025. $46M target in 2026. No dedicated hunter on the team to close the $6M gap.',
     'Every month the seat is open, pipeline that should exist does not.',
     'Relationships that open VP Facilities and CFO doors require someone who gets on planes.',
-    'AT&T/BTIS, ESCO, and rep agency channel partnerships need a field champion to activate them.',
+    'AT&T/BGIS, ESCO, and rep agency channel partnerships need a field champion to activate them.',
   ];
 
   const STAGES = [
@@ -1334,7 +1346,7 @@ function HiringROIScreen({ onBack }) {
 
               <SectionHead mt={24}>Investment inputs</SectionHead>
               <Slider label="Enterprise AE annual cost (OTE + benefits)" value={ote}
-                min={100000} max={500000} step={10000} fmt={fmtUSD}
+                min={100000} max={500000} step={5000} fmt={fmtUSD}
                 onChange={setOte} />
               <Slider label="Months the hunter seat has been open" value={monthsOpen}
                 min={1} max={24} step={1} fmt={v => v + (v===1?' month':' months')}
@@ -1385,7 +1397,7 @@ function HiringROIScreen({ onBack }) {
                   { label:'Multi-channel touches/month',     val:fmtN(monthlyTouches),      sub:`${namedAccts} accounts x 3 touches: LinkedIn, email, phone`,            color:C.primary },
                   { label:'Top-of-funnel engagement value',  val:fmtUSD(monthlyTOFVal),     sub:'Awareness-stage pipeline value per month at 1.5% conversion rate',      color:C.green   },
                   { label:'ROI calculator inbound leads',    val:'20+ /mo',                 sub:'Qualified VP Facilities via LinkedIn campaigns and QR at tradeshows',    color:C.primary },
-                  { label:'Channel partners to activate',    val:'3 to 5',                  sub:'AT&T/BTIS, ESCOs, rep agencies — each needs a field champion to close',  color:C.primary },
+                  { label:'Channel partners to activate',    val:'3 to 5',                  sub:'AT&T/BGIS, ESCOs, rep agencies — each needs a field champion to close',  color:C.primary },
                   { label:'NexRev brand impressions/month',  val:'5,000+',                  sub:'Thought leadership content across QSR, big box, K-12, 3PL verticals',   color:C.primary },
                 ].map((item,i) => (
                   <div key={i} style={{ background:C.cardAlt, borderRadius:10, padding:'12px 14px',
