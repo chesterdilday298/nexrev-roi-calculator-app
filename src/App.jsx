@@ -196,13 +196,31 @@ function SectionHead({children,mt}) {
 
 function Slider({label,value,min,max,step,fmt,onChange,hint,footnote}) {
   const pct=((value-min)/(max-min))*100;
+  const handleNumInput = (e) => {
+    const raw = e.target.value;
+    if (raw === '' || raw === '-') return;
+    const n = Number(raw);
+    if (!isNaN(n)) onChange(Math.min(max, Math.max(min, n)));
+  };
   return (
     <div style={{marginBottom:18}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:5}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}>
         <label style={{fontSize:13,color:C.textMid,fontWeight:500}}>
           {label}{footnote&&<sup style={{color:C.primary,marginLeft:2}}>{footnote}</sup>}
         </label>
-        <span style={{fontSize:14,fontWeight:700,color:C.text}}>{fmt(value)}</span>
+        <div style={{display:'flex',alignItems:'center',gap:6}}>
+          <input
+            type="number" min={min} max={max} step={step} value={value}
+            onChange={handleNumInput}
+            style={{
+              width:68, padding:'2px 5px', fontSize:12, textAlign:'right',
+              border:`1px solid ${C.border}`, borderRadius:5,
+              color:C.primary, fontFamily:'inherit', fontWeight:700,
+              background:'#F8FAFF', lineHeight:1.4,
+            }}
+          />
+          <span style={{fontSize:13,fontWeight:700,color:C.text,minWidth:56}}>{fmt(value)}</span>
+        </div>
       </div>
       <div style={{position:'relative',height:20}}>
         <div style={{position:'absolute',top:7,left:0,height:6,width:`${pct}%`,
@@ -1154,11 +1172,11 @@ function CalculatorScreen({ pains, vertIdx: initVertIdx, onBack, onNext }) {
 
 // ── Hiring ROI Screen ─────────────────────────────────────────────────────────
 function HiringROIScreen({ onBack }) {
-  const [ote,          setOte]         = useState(280000);
+  const [ote,          setOte]         = useState(275000);
   const [monthsOpen,   setMonthsOpen]  = useState(6);
   const [pilotsY1,     setPilotsY1]    = useState(3);
   const [pilotsY2,     setPilotsY2]    = useState(5);
-  const [rolloutSites, setRolloutSites]= useState(150);
+  const [rolloutSites, setRolloutSites]= useState(250);
   const [ctrlPerSite,  setCtrlPerSite] = useState(3);
   const [subRate,      setSubRate]     = useState(7.50);
   const [namedAccts,   setNamedAccts]  = useState(40);
@@ -1190,9 +1208,9 @@ function HiringROIScreen({ onBack }) {
   const s4Accts = 2;          // Day 90 gate: 2 pilot conversations active
 
   const s1Val     = s1Accts * avgDeal * 0.05;
-  const s2Val     = s2Accts * avgDeal * 0.20;
-  const s3Val     = s3Accts * avgDeal * 0.40;
-  const s4Val     = s4Accts * avgDeal * 0.75;
+  const s2Val     = s2Accts * avgDeal * 0.18;
+  const s3Val     = s3Accts * avgDeal * 0.35;
+  const s4Val     = s4Accts * avgDeal * 0.72;
   const pipeTotal = s1Val + s2Val + s3Val + s4Val;
   const monthlyPipeGap = pipeTotal / 12;
   const alreadyLost    = monthlyPipeGap * monthsOpen;
@@ -1213,9 +1231,9 @@ function HiringROIScreen({ onBack }) {
 
   const STAGES = [
     { label:'Stage 1', desc:'ICA fit identified + initial contact made', accts:s1Accts, prob:'5%',  val:s1Val,  color:C.primary, bg:'#DBEAFE' },
-    { label:'Stage 2', desc:'Discovery call completed',                  accts:s2Accts, prob:'20%', val:s2Val,  color:C.primary, bg:'#DBEAFE' },
-    { label:'Stage 3', desc:'ROI model delivered to economic buyer',     accts:s3Accts, prob:'40%', val:s3Val,  color:C.amber,   bg:'#FEF3C7' },
-    { label:'Stage 4', desc:'Pilot site in active discussion',           accts:s4Accts, prob:'75%', val:s4Val,  color:C.green,   bg:'#DCFCE7' },
+    { label:'Stage 2', desc:'Discovery call completed',                  accts:s2Accts, prob:'18%', val:s2Val,  color:C.primary, bg:'#DBEAFE' },
+    { label:'Stage 3', desc:'ROI model delivered to economic buyer',     accts:s3Accts, prob:'35%', val:s3Val,  color:C.amber,   bg:'#FEF3C7' },
+    { label:'Stage 4', desc:'Pilot site in active discussion',           accts:s4Accts, prob:'72%', val:s4Val,  color:C.green,   bg:'#DCFCE7' },
   ];
 
   return (
@@ -1259,6 +1277,19 @@ function HiringROIScreen({ onBack }) {
             NexRev hit $40M in 2025. The $46M target runs on account managers who do not hunt.
             Every month without a proven hunter is pipeline that does not exist and revenue NexRev never sees.
           </p>
+          <div style={{ marginTop:14, display:'inline-flex', alignItems:'center', gap:8,
+            background:'#FFF7ED', border:'1px solid #FED7AA', borderRadius:8,
+            padding:'8px 14px', maxWidth:580 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}>
+              <circle cx="8" cy="8" r="7" fill="#FBBF24"/>
+              <path d="M8 5v4M8 11v.5" stroke="#78350F" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+            <span style={{ fontSize:12, color:'#92400E', lineHeight:1.5 }}>
+              <strong>Scope note:</strong> This model covers only the four vertical channels Paul
+              identified. ESCO, AT&T/BGIS, rep agency, and other channel partner contributions
+              are excluded — which only makes the case stronger.
+            </span>
+          </div>
         </div>
       </div>
 
@@ -1458,6 +1489,18 @@ function HiringROIScreen({ onBack }) {
                 Monthly pipeline gap: <strong style={{ color:C.text }}>{fmtUSD(monthlyPipeGap)}/month</strong>{' '}
                 (annualized total / 12). Each month the seat is open, this entire funnel stalls at zero.
               </div>
+              <div style={{ fontSize:11, color:C.muted, marginTop:8, lineHeight:1.7,
+                background:C.divider, borderRadius:8, padding:'10px 12px' }}>
+                <strong style={{ color:C.textMid }}>How probabilities are set:</strong>{' '}
+                Stage 1 (5%) reflects the reality that most initial ICA-fit outreach does not advance — high volume, high noise.
+                Stage 2 (18%) accounts for accounts where discovery confirmed a real need but budget, timing, or internal alignment is still at risk.
+                Stage 3 (35%) applies when an ROI model has reached the economic buyer — serious intent, but capital approval and project scheduling remain gating factors.
+                Stage 4 (72%) is reserved for accounts in active pilot negotiation — near-close, but contract terms and IT signoff still carry risk.
+                These reflect standard enterprise hardware/SaaS benchmarks, not arbitrary round numbers.
+                <br/><strong style={{ color:C.textMid }}>Note:</strong>{' '}
+                This model covers only the four vertical channels Paul identified (C-Store, QSR, Big Box/Retail, K-12).
+                ESCO, AT&T/BGIS, rep agency, and other channel partner contributions are excluded entirely.
+              </div>
             </div>
 
             {/* Revenue from hire */}
@@ -1523,8 +1566,8 @@ function HiringROIScreen({ onBack }) {
               <div style={{ fontSize:14, color:C.text, lineHeight:1.8 }}>
                 Based on these inputs, every 30 days without a proven hunter costs{' '}
                 <strong style={{ color:C.red }}>{fmtUSD(monthlyPipeGap)}</strong>{' '}
-                in pipeline opportunity (Stage 1 through Stage 4: ICA-fit accounts from initial
-                contact through pilot discussion) and{' '}
+                in pipeline opportunity (Stage 1 through 4: probability-weighted from 5% at initial
+                contact to 72% at active pilot discussion) and{' '}
                 <strong style={{ color:C.primary }}>{fmtUSD(monthlyTOFVal)}</strong>{' '}
                 in top-of-funnel brand and marketing engagements, resulting in{' '}
                 <strong style={{ color:C.red }}>{fmtUSD(y1Rev / 12)}</strong>{' '}
@@ -1543,9 +1586,11 @@ function HiringROIScreen({ onBack }) {
                 <strong style={{ color:C.text }}>Pipeline opportunity dollars</strong> are the
                 probability-weighted value of all accounts across four stages of the NexRev sales funnel.
                 Stage 1 (ICA fit + initial contact) carries a 5% close probability applied to all
-                named target accounts. Stage 2 (discovery call completed) carries 20%. Stage 3 (ROI
-                model delivered to economic buyer) carries 40%. Stage 4 (pilot site in active
-                discussion) carries 75%. Stage account counts are fixed to the 90-day plan gate
+                named target accounts. Stage 2 (discovery call completed) carries 18% — qualified
+                interest confirmed but budget, timing, and internal alignment still at risk. Stage 3
+                (ROI model delivered to economic buyer) carries 35% — serious intent, but capital
+                approval and project scheduling remain gating factors. Stage 4 (pilot site in active
+                discussion) carries 72% — near-close, with contract terms and IT signoff as remaining risk. Stage account counts are fixed to the 90-day plan gate
                 targets: 10 discovery calls by Day 60, 5 ROI models delivered by Day 60, 2 pilot
                 conversations active by Day 90. Average deal value equals hardware revenue
                 (avg $550/unit &times; controllers per rollout) plus annual ARR (controllers &times;
